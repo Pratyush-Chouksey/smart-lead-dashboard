@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  # ── Backend ────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: smart-leads-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    env_file:
+      - .env
+    environment:
+      # Override MONGO_URI so the backend reaches MongoDB by service name
+      MONGO_URI: mongodb://mongodb:27017/${MONGO_DB_NAME:-smart-leads-dashboard}
+      NODE_ENV: production
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:6
+    container_name: smart-leads-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"          # expose for local tools (Compass, etc.)
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-smart-leads-dashboard}
+    volumes:
+      - mongo-data:/data/db    # named volume — survives container recreation
+      - mongo-config:/data/configdb
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - app-network
+
+# ── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  mongo-data:
+    driver: local
+  mongo-config:
+    driver: local
+
+# ── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  app-network:
+    driver: bridge

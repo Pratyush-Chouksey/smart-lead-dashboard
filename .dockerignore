@@ -1,0 +1,21 @@
+# Git / editor noise
+.git
+.gitignore
+*.md
+
+# Local env (never bake secrets into the image)
+.env
+.env.*
+
+# Source — only dist/ is needed in the production stage
+src/
+
+# Dev tooling and test artefacts
+node_modules/
+coverage/
+*.log
+npm-debug.log*
+
+# OS artefacts
+.DS_Store
+Thumbs.db

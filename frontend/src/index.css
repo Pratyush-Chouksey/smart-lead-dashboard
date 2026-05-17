@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* ── Tailwind v4: class-based dark mode ─────────────────────────────────── */
+@variant dark (&:is(.dark *));
+
+/* ── Design tokens — dark mode (default, app is dark-first) ─────────────── */
+:root {
+  --bg-base:       #0f172a;
+  --bg-surface:    #1e293b;
+  --bg-surface-2:  #273549;
+  --bg-surface-3:  #334155;
+  --border:        rgba(51, 65, 85, 0.6);
+  --border-hover:  rgba(71, 85, 105, 0.8);
+  --text:          #f1f5f9;
+  --text-muted:    #94a3b8;
+  --text-subtle:   #64748b;
+  --ring:          rgba(99, 102, 241, 0.6);
+
+  color-scheme: dark;
+}
+
+/* ── Light mode overrides — applied when .dark is NOT on <html> ─────────── */
+html:not(.dark) {
+  --bg-base:       #f8fafc;
+  --bg-surface:    #ffffff;
+  --bg-surface-2:  #f1f5f9;
+  --bg-surface-3:  #e2e8f0;
+  --border:        rgba(226, 232, 240, 0.9);
+  --border-hover:  rgba(203, 213, 225, 1);
+  --text:          #0f172a;
+  --text-muted:    #475569;
+  --text-subtle:   #94a3b8;
+  --ring:          rgba(99, 102, 241, 0.5);
+
+  color-scheme: light;
+}
+
+/* ── Custom Tailwind theme ───────────────────────────────────────────────── */
+@theme {
+  --color-primary:        #6366f1;
+  --color-primary-dark:   #4f46e5;
+  --color-primary-light:  #a5b4fc;
+
+  /* Semantic surface tokens exposed as Tailwind utilities */
+  --color-base:      var(--bg-base);
+  --color-surface:   var(--bg-surface);
+  --color-surface-2: var(--bg-surface-2);
+  --color-surface-3: var(--bg-surface-3);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Google Font ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Base resets ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--bg-base);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Semantic utility classes (usable across all components) ─────────────── */
+.bg-base      { background-color: var(--bg-base); }
+.bg-surface   { background-color: var(--bg-surface); }
+.bg-surface-2 { background-color: var(--bg-surface-2); }
+.bg-surface-3 { background-color: var(--bg-surface-3); }
+.text-primary  { color: var(--text); }
+.text-muted    { color: var(--text-muted); }
+.text-subtle   { color: var(--text-subtle); }
+.border-token  { border-color: var(--border); }
+
+/* ── Smooth theme transition on all surfaces ─────────────────────────────── */
+.bg-surface, .bg-surface-2, .bg-surface-3, .bg-base {
+  transition: background-color 0.2s ease;
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-surface-2); }
+::-webkit-scrollbar-thumb { background: var(--bg-surface-3); border-radius: 3px; }
