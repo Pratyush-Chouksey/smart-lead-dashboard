@@ -7,19 +7,44 @@ import type {
   FilterParams,
 } from '../types'
 
+// ─── What the backend actually returns (field names differ from frontend types) ─
+
+interface BackendLeadsPayload {
+  leads: Lead[]
+  total: number   // ← backend sends 'total', frontend expects 'totalCount'
+  page: number    // ← backend sends 'page',  frontend expects 'currentPage'
+  pages: number   // ← backend sends 'pages', frontend expects 'totalPages'
+  limit: number
+}
+
 // ─── Get all leads (with filters + pagination) ────────────────────────────────
 
 export async function getLeads(filters?: FilterParams): Promise<LeadsResponse> {
-  // Strip empty-string values so they don't pollute the query string
-  const params = filters
-    ? Object.fromEntries(
-        Object.entries(filters).filter(([, v]) => v !== '' && v !== undefined)
-      )
-    : undefined
+  // Translate frontend sort shorthand → backend sortBy / sortOrder params
+  const { sort, ...rest } = filters ?? {}
+  const sortParams =
+    sort === 'oldest'
+      ? { sortBy: 'createdAt', sortOrder: 'asc' }
+      : { sortBy: 'createdAt', sortOrder: 'desc' }  // default: latest first
 
-  const res = await axiosInstance.get<ApiResponse<LeadsResponse>>('/leads', { params })
+  const merged = { ...rest, ...sortParams }
+
+  // Strip empty-string / undefined values
+  const params = Object.fromEntries(
+    Object.entries(merged).filter(([, v]) => v !== '' && v !== undefined)
+  )
+
+  const res = await axiosInstance.get<ApiResponse<BackendLeadsPayload>>('/leads', { params })
   if (!res.data.data) throw new Error(res.data.message ?? 'Failed to fetch leads')
-  return res.data.data
+
+  // Remap backend field names → frontend LeadsResponse shape
+  const { leads, total, pages, page } = res.data.data
+  return {
+    leads,
+    totalCount: total,
+    totalPages: pages,
+    currentPage: page,
+  }
 }
 
 // ─── Get single lead ──────────────────────────────────────────────────────────
