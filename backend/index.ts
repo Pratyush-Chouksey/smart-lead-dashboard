@@ -23,9 +23,14 @@ app.use(helmet())
 // CORS — in development allow all origins; in production restrict to allow-list
 const isDev = process.env.NODE_ENV !== 'production'
 
-const allowedOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
-  .split(',')
-  .map((o) => o.trim())
+// Build the allowed-origin list from two sources so both are supported:
+//  - CORS_ORIGIN  : comma-separated legacy variable (may hold multiple origins)
+//  - FRONTEND_URL : single Vercel / production frontend URL
+const rawOrigins = [
+  ...(process.env.CORS_ORIGIN ?? 'http://localhost:5173').split(','),
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+]
+const allowedOrigins = [...new Set(rawOrigins.map((o) => o.trim()).filter(Boolean))]
 
 app.use(
   cors({
