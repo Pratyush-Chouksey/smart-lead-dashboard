@@ -4,8 +4,8 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./",
+    "outDir": "./dist",        // compiled output for `npm start`
+    "rootDir": "./",           // must include backend/ root (index.ts lives here, not in src/)
     "strict": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
