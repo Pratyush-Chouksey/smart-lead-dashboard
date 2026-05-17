@@ -142,36 +142,42 @@ export const exportLeads = async (
     const filter = buildFilter(authReq.user, query)
 
     const leads = await Lead.find(filter)
-      .populate('createdBy', 'name email')
+      .populate('createdBy', 'name')   // name only — email no longer needed
       .sort({ createdAt: -1 })
       .lean()
 
-    // Build CSV
-    const header = ['ID', 'Name', 'Email', 'Phone', 'Company', 'Status', 'Source', 'Notes', 'Created By', 'Created At', 'Updated At']
+    // ── Date formatter: DD/MM/YYYY ─────────────────────────────────────────
+    const formatDate = (date: Date): string => {
+      const d   = new Date(date)
+      const day   = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year  = d.getFullYear()
+      return `${day}/${month}/${year}`
+    }
 
+    // ── CSV cell escaper ───────────────────────────────────────────────────
     const escape = (value: unknown): string => {
       const str = value == null ? '' : String(value)
-      // Wrap in double-quotes if it contains comma, newline or double-quote
       if (str.includes(',') || str.includes('\n') || str.includes('"')) {
         return `"${str.replace(/"/g, '""')}"`
       }
       return str
     }
 
+    // ── Headers (exact order as specified) ────────────────────────────────
+    const header = ['Name', 'Email', 'Status', 'Source', 'Created By', 'Created At', 'Updated At']
+
+    // ── Rows ──────────────────────────────────────────────────────────────
     const rows = leads.map((lead) => {
-      const createdBy = lead.createdBy as unknown as { name: string; email: string } | null
+      const createdBy = lead.createdBy as unknown as { name: string } | null
       return [
-        lead._id.toString(),
         lead.name,
         lead.email,
-        lead.phone ?? '',
-        lead.company ?? '',
         lead.status,
         lead.source,
-        lead.notes ?? '',
-        createdBy ? `${createdBy.name} <${createdBy.email}>` : '',
-        new Date(lead.createdAt).toISOString(),
-        new Date(lead.updatedAt).toISOString(),
+        createdBy?.name ?? '',               // name only — no <email> suffix
+        formatDate(lead.createdAt as Date),
+        formatDate(lead.updatedAt as Date),
       ]
         .map(escape)
         .join(',')
@@ -179,7 +185,12 @@ export const exportLeads = async (
 
     const csv = [header.map(escape).join(','), ...rows].join('\n')
 
-    const filename = `leads_${new Date().toISOString().slice(0, 10)}.csv`
+    // ── Filename: Leads_DD-MM-YYYY.csv ────────────────────────────────────
+    const today = new Date()
+    const dd    = String(today.getDate()).padStart(2, '0')
+    const mm    = String(today.getMonth() + 1).padStart(2, '0')
+    const yyyy  = today.getFullYear()
+    const filename = `Leads_${dd}-${mm}-${yyyy}.csv`
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
@@ -188,6 +199,7 @@ export const exportLeads = async (
     next(err)
   }
 }
+
 
 // ─── GET /api/leads/:id ───────────────────────────────────────────────────────
 
