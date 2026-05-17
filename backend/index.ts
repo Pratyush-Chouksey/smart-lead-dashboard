@@ -54,6 +54,16 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
+app.get('/', (_req, res) => {
+  res.json({
+    success: true,
+    message: 'GigFlow API is running 🚀',
+    version: '1.0.0',
+  })
+})
+
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
 app.get('/api/health', (_req, res) => {
