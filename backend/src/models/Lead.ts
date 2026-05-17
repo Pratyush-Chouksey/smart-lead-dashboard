@@ -1,4 +1,4 @@
-import { Schema, model, Types } from 'mongoose'
+import { Schema, model } from 'mongoose'
 import type { ILead } from '../types'
 
 const leadSchema = new Schema<ILead>(
