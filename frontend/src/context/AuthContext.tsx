@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { User } from '../types'
+import { queryClient } from '../queryClient'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,12 +72,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     writeToStorage(newToken, newUser)
     setToken(newToken)
     setUser(newUser)
+    // Wipe any cached data from a previous user so the new user
+    // always gets a fresh fetch — prevents stale data cross-user bleed.
+    queryClient.clear()
   }, [])
 
   const logout = useCallback(() => {
     clearStorage()
     setToken(null)
     setUser(null)
+    // Remove all cached queries so the next login starts clean.
+    queryClient.clear()
   }, [])
 
   // ── Derived values (memoised to prevent unnecessary re-renders) ───────────
